@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10120f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="二十四节气">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<title>二十四节气</title>
+<style>
+:root{
+  --bg:#090a0c;--bg2:#10120f;--surface:#151713;--surface2:#1a1e18;
+  --text:#eee9dc;--muted:#9a9588;--green:#9fbd88;--green2:#c7d9b8;
+  --blue:#89a8bc;--line:rgba(159,189,136,.20);--shadow:0 18px 48px rgba(0,0,0,.28)
+}
+*{box-sizing:border-box}
+html{min-height:100%;background:var(--bg)}
+body{
+  margin:0;min-height:100vh;color:var(--text);
+  font-family:"Noto Serif SC","Songti SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+  background:
+    radial-gradient(circle at 8% 0%,rgba(126,161,101,.11),transparent 30rem),
+    radial-gradient(circle at 92% 16%,rgba(90,128,151,.09),transparent 26rem),
+    linear-gradient(180deg,var(--bg2),var(--bg));
+}
+.page{
+  width:min(1220px,100%);margin:0 auto;
+  padding:max(28px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right))
+          max(30px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left))
+}
+header{
+  display:flex;align-items:center;justify-content:space-between;gap:18px;
+  margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid var(--line)
+}
+.brand{display:flex;align-items:center;gap:14px}
+.mark{
+  width:56px;height:56px;display:grid;place-items:center;border-radius:17px;
+  border:1px solid rgba(159,189,136,.5);background:rgba(95,128,75,.15);
+  color:var(--green2);font-size:28px;font-weight:800
+}
+h1{margin:0;color:var(--green2);font-size:clamp(28px,4vw,42px)}
+.sub{margin:5px 0 0;color:var(--muted);font-size:12px}
+.back{color:var(--muted);text-decoration:none;font-size:12px;white-space:nowrap}
+.back:hover{color:var(--green2)}
+.section-title{margin:0 0 12px;font-size:18px;color:var(--green2)}
+.live-panel{
+  display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:12px;
+  margin-bottom:24px;padding:18px;border:1px solid rgba(105,144,170,.35);
+  border-radius:20px;background:linear-gradient(180deg,#111a20,#0d1418);box-shadow:var(--shadow)
+}
+.live-cell{min-width:0;padding:8px 10px}
+.live-cell+.live-cell{border-left:1px solid rgba(126,155,183,.18)}
+.live-label{display:block;margin-bottom:6px;color:#8196a5;font-size:11px;letter-spacing:.12em}
+.live-main{font-size:clamp(23px,3vw,31px);font-weight:800;color:#e3eef4}
+.live-sub{margin-top:5px;color:#90a4b2;font-size:12px;line-height:1.55}
+.intro{
+  margin:0 0 24px;padding:16px 18px;border:1px solid var(--line);border-radius:16px;
+  background:rgba(21,24,19,.78);color:#c7c1b4;font-size:13px;line-height:1.8
+}
+.visual{
+  display:grid;grid-template-columns:minmax(520px,.95fr) minmax(0,1.05fr);
+  gap:24px;align-items:center;margin-bottom:28px
+}
+.wheel-wrap{display:grid;place-items:center;min-height:590px}
+.wheel{
+  --radius:245px;
+  position:relative;width:560px;aspect-ratio:1;border-radius:50%;
+  border:1px solid rgba(159,189,136,.32);
+  background:
+    radial-gradient(circle at center,rgba(22,24,19,.97) 0 31%,transparent 31.5%),
+    conic-gradient(from -7.5deg,
+      rgba(124,173,108,.10) 0 90deg,
+      rgba(210,177,95,.08) 90deg 180deg,
+      rgba(187,137,86,.08) 180deg 270deg,
+      rgba(94,137,168,.09) 270deg 360deg);
+  box-shadow:inset 0 0 0 12px rgba(159,189,136,.018),var(--shadow)
+}
+.wheel::after{content:"";position:absolute;inset:20%;border:1px solid rgba(159,189,136,.14);border-radius:50%}
+.wheel-node{
+  position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px;z-index:2;
+  display:grid;place-items:center;border:1px solid rgba(159,189,136,.24);border-radius:50%;
+  background:#151713;color:#d9d4c8;font:inherit;font-size:10px;cursor:pointer;
+  transform:rotate(var(--angle)) translateY(calc(-1 * var(--radius))) rotate(calc(-1 * var(--angle)));
+  transition:.18s ease;box-shadow:0 5px 12px rgba(0,0,0,.25)
+}
+.wheel-node:hover,.wheel-node.selected{
+  transform:rotate(var(--angle)) translateY(calc(-1 * var(--radius))) rotate(calc(-1 * var(--angle))) scale(1.12);
+  border-color:var(--green);background:#20271b;color:#fff
+}
+.wheel-node.current{box-shadow:0 0 0 4px rgba(110,153,180,.28),0 5px 12px rgba(0,0,0,.25);border-color:#7fa8c0}
+.wheel-node.next{border-color:#c4b06d}
+.wheel-center{
+  position:absolute;inset:34%;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;pointer-events:none
+}
+.center-name{font-size:34px;font-weight:800;color:var(--green2)}
+.center-season{margin-top:5px;color:var(--muted);font-size:11px}
+.detail{
+  padding:22px;border:1px solid var(--line);border-radius:20px;
+  background:linear-gradient(180deg,var(--surface2),var(--surface));box-shadow:var(--shadow)
+}
+.detail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.detail h2{margin:0;color:var(--green2);font-size:30px}
+.alias{margin-top:5px;color:var(--muted);font-size:12px}
+.badge{padding:7px 10px;border:1px solid var(--line);border-radius:999px;color:#d7e6cc;font-size:11px;white-space:nowrap}
+.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:18px 0}
+.fact{padding:10px;border:1px solid rgba(159,189,136,.13);border-radius:12px;background:rgba(6,8,6,.16)}
+.fact span{display:block;color:var(--muted);font-size:9px;margin-bottom:4px}
+.fact strong{font-size:12px;color:#e9e2d3}
+.block{padding-top:14px;margin-top:14px;border-top:1px solid rgba(159,189,136,.13)}
+.block b{display:block;margin-bottom:5px;color:var(--green);font-size:12px}
+.block p{margin:0;color:#c8c1b3;font-size:12px;line-height:1.82}
+.pentads{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.pentad{padding:9px;border-radius:10px;background:rgba(6,8,6,.18);border:1px solid rgba(159,189,136,.11);text-align:center;color:#d7d0c2;font-size:11px}
+.search-wrap{margin-bottom:18px}
+.search{
+  width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:12px;
+  background:#0e110d;color:var(--text);font:inherit;outline:none
+}
+.search:focus{border-color:rgba(159,189,136,.55)}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.card{
+  text-align:left;padding:13px;border:1px solid rgba(159,189,136,.14);border-radius:14px;
+  background:rgba(20,23,18,.72);color:inherit;cursor:pointer
+}
+.card:hover{border-color:rgba(159,189,136,.42)}
+.card strong{display:block;color:#e4dcc9;font-size:14px}
+.card small{display:block;margin-top:4px;color:#8f8a80;font-size:10px}
+.card.current{border-color:#789ab0}
+.card.next{box-shadow:inset 0 0 0 1px rgba(196,176,109,.35)}
+.note{
+  margin-top:18px;padding:14px 16px;border:1px solid rgba(159,189,136,.14);border-radius:14px;
+  color:#aaa497;font-size:11px;line-height:1.75;background:rgba(11,13,10,.45)
+}
+footer{
+  display:flex;justify-content:center;align-items:center;gap:8px;margin-top:38px;padding-top:18px;
+  border-top:1px solid var(--line);color:#817c72;font-size:11px
+}
+footer a{color:inherit;text-decoration:none}
+footer a:hover{color:var(--green2)}
+.empty{padding:12px;color:#827c72;font-size:11px}
+@media(max-width:1100px){
+  .visual{grid-template-columns:1fr}
+  .wheel-wrap{min-height:590px}
+}
+@media(max-width:760px){
+  .live-panel{grid-template-columns:1fr 1fr}
+  .live-cell:first-child{grid-column:1/-1}
+  .live-cell+.live-cell{border-left:0}
+  .cards{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:620px){
+  .page{padding-left:13px;padding-right:13px}
+  .mark{width:50px;height:50px;font-size:26px}
+  .brand h1{font-size:28px}
+  .back{font-size:11px}
+  .wheel-wrap{display:block;min-height:0}
+  .wheel{
+    width:100%;aspect-ratio:auto;border:0;background:none;box-shadow:none;
+    display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px
+  }
+  .wheel::after,.wheel-center{display:none}
+  .wheel-node{
+    position:static;width:auto;height:auto;min-height:42px;margin:0;border-radius:11px;
+    transform:none!important;font-size:11px
+  }
+  .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pentads{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<main class="page">
+<header>
+  <div class="brand">
+    <div class="mark" aria-hidden="true">节</div>
+    <div><h1>二十四节气</h1><p class="sub">太阳周年 · 四季 · 三候 · 农事 · 习俗 · 食俗</p></div>
+  </div>
+  <a class="back" href="https://noagrp.github.io/zhong/">返回 中</a>
+</header>
+
+<section aria-labelledby="nowTitle">
+  <h2 class="section-title" id="nowTitle">当前</h2>
+  <div class="live-panel">
+    <div class="live-cell">
+      <span class="live-label">今天</span>
+      <div class="live-main" id="today">--</div>
+      <div class="live-sub" id="timezone">设备本地时间</div>
+    </div>
+    <div class="live-cell">
+      <span class="live-label">当前节气</span>
+      <div class="live-main" id="currentName">--</div>
+      <div class="live-sub" id="currentInfo">--</div>
+    </div>
+    <div class="live-cell">
+      <span class="live-label">下一个节气</span>
+      <div class="live-main" id="nextName">--</div>
+      <div class="live-sub" id="nextInfo">--</div>
+    </div>
+  </div>
+</section>
+
+<p class="intro">
+二十四节气按照太阳在黄道上的周年位置划分，每隔约15°一个节点，一年共24个。它既记录季节转换，也长期服务于中国传统农业、物候观察与生活安排。节气不是按农历月相决定；农历月日与节气属于同一阴阳合历中的不同层面。
+</p>
+
+<section class="visual">
+  <div class="wheel-wrap"><div class="wheel" id="wheel"><div class="wheel-center"><div class="center-name" id="centerName">--</div><div class="center-season" id="centerSeason">--</div></div></div></div>
+  <article class="detail" id="detail"></article>
+</section>
+
+<section aria-labelledby="allTitle">
+  <h2 class="section-title" id="allTitle">二十四节气一览</h2>
+  <div class="search-wrap"><input class="search" id="search" type="search" placeholder="搜索节气、三候、农事、习俗或食俗"></div>
+  <div class="cards" id="cards"></div>
+  <div class="note" id="dataNote"></div>
+</section>
+
+<footer>
+  <a href="https://noagrp.github.io/home/">noagrp home</a><span>·</span>
+  <a href="https://noagrp.github.io/zhong/">中</a>
+</footer>
+</main>
+
+<script src="./vendor/lunar.js"></script>
+<script src="./src/jieqi-engine.js"></script>
+<script>
+(async()=>{
+ const $=id=>document.getElementById(id);
+ const pad=n=>String(n).padStart(2,"0");
+ try{
+  const engine=await loadJieqiEngine("./data/jieqi.json?v=20261005-1");
+  const all=engine.list(), meta=engine.getMeta();
+  let selected=all[0], current=null, next=null, nextDate=null;
+
+  function solarToDate(s){
+    return new Date(s.getYear(),s.getMonth()-1,s.getDay(),s.getHour?s.getHour():0,s.getMinute?s.getMinute():0,s.getSecond?s.getSecond():0);
+  }
+  function fmtDate(d){
+    return d.toLocaleDateString("zh-CN",{year:"numeric",month:"long",day:"numeric",weekday:"short"});
+  }
+  function fmtMoment(d){
+    return d.toLocaleString("zh-CN",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit",hour12:false});
+  }
+  function countdown(d){
+    const ms=d-new Date();
+    if(ms<=0)return "即将交节";
+    const days=Math.floor(ms/86400000),hours=Math.floor((ms%86400000)/3600000);
+    return days>0?days+"天"+hours+"小时":hours+"小时";
+  }
+  function refreshLive(){
+    const now=new Date();
+    $("today").textContent=fmtDate(now);
+    $("timezone").textContent=(Intl.DateTimeFormat().resolvedOptions().timeZone||"设备本地时区")+" · "+now.toLocaleTimeString("zh-CN",{hour12:false});
+    if(typeof Solar!=="undefined"){
+      const lunar=Solar.fromDate(now).getLunar();
+      const p=lunar.getPrevJieQi(),n=lunar.getNextJieQi();
+      if(p){current=engine.getByName(p.getName());}
+      if(n){next=engine.getByName(n.getName());nextDate=solarToDate(n.getSolar());}
+      $("currentName").textContent=current?current.name:(p?p.getName():"--");
+      $("currentInfo").textContent=current?(current.season+"季 · 黄经"+current.solarLongitude+"° · "+current.meaning):"--";
+      $("nextName").textContent=next?next.name:(n?n.getName():"--");
+      $("nextInfo").textContent=nextDate?(fmtMoment(nextDate)+" · 约"+countdown(nextDate)):"--";
+      if(!selected||selected===all[0]) selected=current||selected;
+    }
+  }
+  function renderWheel(){
+    $("wheel").querySelectorAll(".wheel-node").forEach(x=>x.remove());
+    all.forEach((item,i)=>{
+      const b=document.createElement("button");
+      b.type="button";b.className="wheel-node"+(current&&item.id===current.id?" current":"")+(next&&item.id===next.id?" next":"")+(selected&&item.id===selected.id?" selected":"");
+      b.style.setProperty("--angle",(i*15)+"deg");b.textContent=item.name;
+      b.addEventListener("click",()=>select(item.id));
+      $("wheel").appendChild(b);
+    });
+  }
+  function renderDetail(item){
+    $("centerName").textContent=item.name;
+    $("centerSeason").textContent=item.season+"季 · "+item.type+" · 黄经"+item.solarLongitude+"°";
+    const festivals=(item.relatedFestivals||[]).length?'<div class="block"><b>相关节日</b><p>'+item.relatedFestivals.join("<br>")+'</p></div>':"";
+    $("detail").innerHTML=
+      '<div class="detail-head"><div><h2>'+item.name+'</h2><div class="alias">'+item.meaning+'</div></div><div class="badge">'+item.usualDate+'</div></div>'+
+      '<div class="facts">'+
+        '<div class="fact"><span>次序</span><strong>'+item.order+' / 24</strong></div>'+
+        '<div class="fact"><span>季节</span><strong>'+item.season+'季</strong></div>'+
+        '<div class="fact"><span>类型</span><strong>'+item.type+'</strong></div>'+
+        '<div class="fact"><span>太阳黄经</span><strong>'+item.solarLongitude+'°</strong></div>'+
+      '</div>'+
+      '<div class="block"><b>节气含义</b><p>'+item.definition+'</p></div>'+
+      '<div class="block"><b>气候与自然变化</b><p>'+item.climate+'</p></div>'+
+      '<div class="block"><b>三候</b><div class="pentads">'+item.pentads.map((x,i)=>'<div class="pentad">'+["一候","二候","三候"][i]+' · '+x+'</div>').join("")+'</div></div>'+
+      '<div class="block"><b>传统农事</b><p>'+item.agriculture+'</p></div>'+
+      '<div class="block"><b>习俗</b><p>'+item.customs+'</p></div>'+
+      '<div class="block"><b>食俗</b><p>'+item.food+'</p></div>'+
+      festivals+
+      '<div class="block"><b>文化小记</b><p>'+item.culture+'</p></div>';
+  }
+  function renderCards(list=all){
+    if(!list.length){$("cards").innerHTML='<div class="empty">没有找到相关内容。</div>';return;}
+    $("cards").innerHTML=list.map(x=>
+      '<button type="button" class="card'+(current&&x.id===current.id?" current":"")+(next&&x.id===next.id?" next":"")+'" data-id="'+x.id+'">'+
+      '<strong>'+x.name+'</strong><small>'+x.season+' · '+x.type+' · '+x.usualDate+'</small></button>'
+    ).join("");
+    $("cards").querySelectorAll(".card").forEach(b=>b.addEventListener("click",()=>select(b.dataset.id,true)));
+  }
+  function select(id,scroll){
+    const item=engine.get(id);if(!item)return;
+    selected=item;renderWheel();renderDetail(item);renderCards(engine.search($("search").value));
+    if(scroll&&matchMedia("(max-width:1100px)").matches)$("detail").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  refreshLive();
+  selected=current||all[0];
+  renderWheel();renderDetail(selected);renderCards();
+  $("dataNote").textContent=meta.note;
+  $("search").addEventListener("input",e=>renderCards(engine.search(e.target.value)));
+  setInterval(()=>{refreshLive();renderWheel();renderCards(engine.search($("search").value));},60000);
+  if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(()=>{});
+ }catch(e){
+  $("detail").innerHTML='<div class="empty">资料载入失败，请重新整理页面后再试。</div>';
+ }
+})();
+</script>
+</body>
+</html>
